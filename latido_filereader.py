@@ -159,7 +159,7 @@ class LatidoFilereader:
             text = 'Save Progress Report',
             command = self.saveCallback)
 
-        ttk.Label(self.buttonbar, text="Library Key (8 chars):").grid(column = 2, row = 0, sticky=W, padx=5, pady=5)
+        ttk.Label(self.buttonbar, text="Module Key (8 chars):").grid(column = 2, row = 0, sticky=W, padx=5, pady=5)
         self.loadbutton.grid (column = 0, row = 0, columnspan=2, sticky=W, padx=5, pady=5)
         self.keyentry.grid (column = 3, row = 0, sticky=W, padx=5, pady=5)
         self.savebutton.grid (column = 4, row = 0, sticky=E, padx=5, pady=5)
