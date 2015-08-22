@@ -35,6 +35,7 @@ class HandleXML:
             file.close
             return
         file.close
+        self.exercises = []
         for node in root:
             if "name" == node.tag:
                 self.username = node.text
@@ -196,4 +197,3 @@ def main():
     root.mainloop()
 
 if __name__ == "__main__": main()
-
