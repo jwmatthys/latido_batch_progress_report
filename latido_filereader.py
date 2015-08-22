@@ -86,7 +86,7 @@ class LatidoFilereader:
         for i in self.data.get_children():
             self.data.delete(i)
         latidodir = tkFileDialog.askdirectory(mustexist=True,
-            title='Select Your Folder of Latido User Files.',
+            title='Select Folder of Latido User Files',
             initialdir = os.path.expanduser('~'))
         if latidodir == '':
             return
@@ -95,7 +95,6 @@ class LatidoFilereader:
                 if file.endswith(".latido"):
                     self.processXML (os.path.join(latidodir,file), file)
         else:
-            print latidodir
             for root, dirs, files in os.walk(latidodir):
                 for f in files:
                     if f.endswith(".latido"):
@@ -117,7 +116,7 @@ class LatidoFilereader:
 
     def saveCallback(self):
         if self.loaded:
-            savepath = tkFileDialog.asksaveasfile(title='Choose Location to Save Your Progress Report.',
+            savepath = tkFileDialog.asksaveasfile(title='Choose Location to Save Progress Report',
                 initialdir = os.path.expanduser('~'), defaultextension='.txt')
             if savepath is None:
                 return
@@ -143,8 +142,8 @@ class LatidoFilereader:
         self.root.resizable(True, True)
         self.root.title ("Latido Progress File Reader")
 
-        self.buttonbar = Frame(root)
-        self.buttonbar.grid(column=0, row=0, sticky='EW')
+        self.buttonbar = ttk.Frame(root)
+        self.buttonbar.grid(column=0, row=0, columnspan=2, sticky='EW')
 
         self.loadbutton = ttk.Button(self.buttonbar,
             text = 'Open Folder with Latido Files',
@@ -175,8 +174,8 @@ class LatidoFilereader:
 
 
         self.data = ttk.Treeview(root)
-        self.data.grid(column=0,row=1,sticky='NSEW')
-        S = Scrollbar(root)
+        self.data.grid(column=0,row=1, columnspan=4, sticky='NSEW')
+        S = ttk.Scrollbar(root)
         S.grid(column=1,row=1,sticky='NS')
         S.config(command=self.data.yview)
         self.data.config(yscrollcommand=S.set)
