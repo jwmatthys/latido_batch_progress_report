@@ -1,6 +1,5 @@
 from xml.etree import ElementTree
 from sys import argv
-from os.path import expanduser, abspath
 from pyDes import *
 from Tkinter import *
 import ttk
@@ -19,19 +18,19 @@ class HandleXML:
         self.laststartedtime = ""
         self.exercises = []
 
-    def parse(self, latido_dir, filename, key):
+    def parse(self, filepath, key):
 
         try:
             k = des(key, padmode=PAD_PKCS5)
         except ValueError, e:
             tkMessageBox.showerror("Latido Filereader", e)
             return
-        file = open(os.path.join(latido_dir, filename), 'rb')
+        file = open(filepath, 'rb')
         data = file.read()
         try:
             root = ElementTree.fromstring(k.decrypt(data))
         except:
-            tkMessageBox.showerror("Latido Filereader", "Cannot decrypt \""+filename+"\"\nIs it a valid Latido file?\nIs the library key correct?")
+            tkMessageBox.showerror("Latido Filereader", "Cannot decrypt \""+filepath+"\"\nIs it a valid Latido file?\nIs the library key correct?")
             file.close
             return
         file.close
@@ -70,27 +69,37 @@ class HandleXML:
 
 class LatidoFilereader:
 
+    def processXML (self, filepath, filename):
+        self.xml.parse(filepath, self.keyval.get())
+        self.loaded = True
+        username = self.xml.getUsername()
+        score = self.xml.getScore()
+        lastcompleted = self.xml.getLastCompleted()
+        datestamp1 = self.xml.getStartTime()
+        datestamp2 = self.xml.getCompletedTime()
+        exercises = self.xml.getExercises()
+        self.data.insert("","end",filename,text=filename,values=(username, lastcompleted, datestamp1, datestamp2, score))
+        for ex in exercises:
+            self.data.insert(filename, "end", values=("",ex[0],ex[1],ex[2],ex[3]))
+
     def loadCallback(self):
         for i in self.data.get_children():
             self.data.delete(i)
         latidodir = tkFileDialog.askdirectory(mustexist=True,
             title='Select Your Folder of Latido User Files.',
-            initialdir = expanduser('~'))
+            initialdir = os.path.expanduser('~'))
         if latidodir == '':
             return
-        for file in os.listdir(latidodir):
-            if file.endswith(".latido"):
-                self.xml.parse(latidodir, file, self.keyval.get())
-                self.loaded = True
-                username = self.xml.getUsername()
-                score = self.xml.getScore()
-                lastcompleted = self.xml.getLastCompleted()
-                datestamp1 = self.xml.getStartTime()
-                datestamp2 = self.xml.getCompletedTime()
-                exercises = self.xml.getExercises()
-                self.data.insert("","end",file,text=file,values=(username, lastcompleted, datestamp1, datestamp2, score))
-                for ex in exercises:
-                    self.data.insert(file, "end", values=("",ex[0],ex[1],ex[2],ex[3]))
+        if 0 == self.walk_directories.get():
+            for file in os.listdir(latidodir):
+                if file.endswith(".latido"):
+                    self.processXML (os.path.join(latidodir,file), file)
+        else:
+            print latidodir
+            for root, dirs, files in os.walk(latidodir):
+                for f in files:
+                    if f.endswith(".latido"):
+                        self.processXML (os.path.join(root, f), f)
 
     def format_header (self):
         separator = ", "
@@ -109,7 +118,7 @@ class LatidoFilereader:
     def saveCallback(self):
         if self.loaded:
             savepath = tkFileDialog.asksaveasfile(title='Choose Location to Save Your Progress Report.',
-                initialdir = expanduser('~'), defaultextension='.txt')
+                initialdir = os.path.expanduser('~'), defaultextension='.txt')
             if savepath is None:
                 return
             savepath.truncate()
@@ -141,6 +150,9 @@ class LatidoFilereader:
             text = 'Open Folder with Latido Files',
             command = self.loadCallback)
         self.keyval = StringVar()
+        self.walk_directories = IntVar()
+        self.walk_toggle = ttk.Checkbutton (self.buttonbar, variable = self.walk_directories, onvalue=1, offvalue=0)
+        self.walk_directories.set(0)
         self.keyentry = ttk.Entry(self.buttonbar, width=8,
             textvariable = self.keyval)
         self.keyval.set("eyesears")
@@ -148,15 +160,18 @@ class LatidoFilereader:
             text = 'Save Progress Report',
             command = self.saveCallback)
 
-        ttk.Label(self.buttonbar, text="Library Key (8 chars):").grid(column = 1, row = 0, sticky=W, padx=5, pady=5)
-        self.loadbutton.grid (column = 0, row = 0, sticky=W, padx=5, pady=5)
-        self.keyentry.grid (column = 2, row = 0, sticky=W, padx=5, pady=5)
-        self.savebutton.grid (column = 3, row = 0, sticky=E, padx=5, pady=5)
+        ttk.Label(self.buttonbar, text="Library Key (8 chars):").grid(column = 2, row = 0, sticky=W, padx=5, pady=5)
+        self.loadbutton.grid (column = 0, row = 0, columnspan=2, sticky=W, padx=5, pady=5)
+        self.keyentry.grid (column = 3, row = 0, sticky=W, padx=5, pady=5)
+        self.savebutton.grid (column = 4, row = 0, sticky=E, padx=5, pady=5)
+        self.walk_toggle.grid (column = 1, row =1, sticky=W, padx=5, pady=5)
+        ttk.Label(self.buttonbar, text="Also include subdirectories?").grid(column = 0, row = 1, sticky=W, padx=5, pady=5)
 
         self.buttonbar.grid_columnconfigure(0,weight=0)
         self.buttonbar.grid_columnconfigure(1,weight=0)
         self.buttonbar.grid_columnconfigure(2,weight=0)
         self.buttonbar.grid_columnconfigure(3,weight=1)
+        self.buttonbar.grid_columnconfigure(4,weight=0)
 
 
         self.data = ttk.Treeview(root)
