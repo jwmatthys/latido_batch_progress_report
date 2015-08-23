@@ -10,21 +10,18 @@ import getpass
 
 class HandleXML:
 
-    def __init__(self):
+    def parse(self, filepath, key):
         self.username = ""
         self.score = 0
         self.lastcompleted = ""
         self.lastcompletedtime = ""
         self.laststartedtime = ""
         self.exercises = []
-
-    def parse(self, filepath, key):
-
         try:
             k = des(key, padmode=PAD_PKCS5)
         except ValueError, e:
             tkMessageBox.showerror("Latido Filereader", e)
-            return
+            return 1
         file = open(filepath, 'rb')
         data = file.read()
         try:
@@ -32,9 +29,8 @@ class HandleXML:
         except:
             tkMessageBox.showerror("Latido Filereader", "Cannot decrypt \""+filepath+"\"\nIs it a valid Latido file?\nIs the library key correct?")
             file.close
-            return
+            return 1
         file.close
-        self.exercises = []
         for node in root:
             if "name" == node.tag:
                 self.username = node.text
